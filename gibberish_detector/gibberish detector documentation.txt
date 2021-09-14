@@ -1,0 +1,61 @@
+The program looks through all fields and tries to find words that do not exist or are not spelled correctly.
+The program gives each respondent a "scrutiny score" which indicates how closely a respondent should be looked at.
+Fields that are blank, numeric, or specified in "exclude these fields" are not calculated and do not affect the scrutiny score.
+This program should not be used exclusively to identify respondents to disqualify.
+
+Program speed can vary, depending on how many / how long OE responses are.
+I ran this on the entire Google project's data (n = 18351), and the entire process took about 24 minutes.
+
+The program can accept either Excel files, or tab-delimited text files.
+
+==============================================================
+
+Scrutiny score for each individual field is calculated as:
+
+   (% misspelled) + (% gibberish * gibberish weight)
+ ----------------------------------------------------- * 100
+               (1 + gibberish weight)
+			   
+% misspelled / % gibberish can be percent of all words, all characters, the average of these, or whichever is the highest or lowest.
+Default is by percent of words.  Set this in "per-field calculation method".
+
+==============================================================
+
+Scrutiny score overall can be calculated in one of the following ways:
+
+A. The field with the highest scrutiny score
+B. Average score of all fields
+C. (Highest field + Average of all fields) / 2
+
+Default is (highest+average)/2.  Set this in "overall calculation method".
+
+The number that actually appears in the report is calculated as:
+
+   log10( (overall score * 10) + 1 )
+ ------------------------------------- * 100
+                    3
+
+Any respondent using a word in the "auto-flag words" list automatically gets their overall scrutiny score set to the maximum (100).
+Any respondent with at least one gibberish detection will receive a scrutiny score using the above formula, or 74, whichever is higher.
+The auto-flag words list contains words that would surely get a respondent DQ'ed, such as swear words.
+
+==============================================================
+
+Words in "ignore these words" get added to the dictionary.
+This is useful for preventing the detector from flagging proper nouns or slang terms as gibberish.
+
+==============================================================
+
+Words longer than the "longest allowed word length" are automatically flagged as gibberish; few words in the English language exist that are longer than 19.
+Words longer than the "Levenshtein distance 2 cutoff" are given less effort by the program to find a correction, should the word be misspelled.
+These actions are taken to resolve performance issues.
+
+==============================================================
+
+Files outputted by the program are:
+
+results.txt - tab-delimited.  Contains all respondents by ID, along with the number of fields checked, the scrutiny score, the field that contributed most to the score, the value of said field, and all other fields that contributed to the score.
+properNouns.txt - tab-delimited.  Contains words flagged as gibberish that are used at least 2 times, along with how many times it occurred in the data.
+
+Outputting the resulting data as Excel as well as formatting it so it looks nice is currently being worked on.
+

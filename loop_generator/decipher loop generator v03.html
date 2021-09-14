@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Decipher loop generator ver 0.3</title>
+</head>
+<body>
+
+<div id="div_mainContainer" style="width: 90%; height:90%; font-family: Consolas; font-size: 13px; background-color: #EEEEEE; border: 1px solid black; padding: 20px 20px 20px 20px;">
+<b>Ed's Decipher Loop Generator</b><br/>Version 0.3 "Ed Needed This Feature", 4 June 2018
+<br/><br/>
+
+<div id="div_subContainer" style="width: 95%; font-family: Consolas; font-size: 13px; background-color: #FFFFFF; border: 1px solid black; padding: 20px 20px 20px 20px;">
+<b>HOW TO USE THIS</b>
+<br/><br/>
+Paste a tab-delimited/line-delimited block of text.  You can easily generate said block of text using Excel.  The first line of the text should contain the names of the loopvars, and each loopvar should be separated by tabs.  Each line below that should be the values of the loopvars for each iteration of the loop.  Number of iterations the loop will have is equal to the number of lines in the input - 1.
+<br/><br/>
+Loop name: <input type="text" id="txt_loopName" size="8" value="myLoop"/>
+Block name: <input type="text" id="txt_blockName" size="8" value="myBlock"/>
+Looprow condition (%l% = looprow number): <input type="text" id="txt_condition" size="24" value=""/>
+<br/>
+<button id="btn_reset">Reset Defaults</button>
+<button id="btn_sample">Sample Loop</button>
+<button id="btn_generate">Generate Loop</button>
+<button id="btn_generateAndCopy">Generate Loop and Copy to Clipboard</button>
+<table>
+<tr>
+<td>Input</td>
+<td>Output</td>
+</tr>
+<tr>
+<td><textarea rows="32" cols="72" id="txta_input"></textarea></td>
+<td><textarea rows="32" cols="72" id="txta_output"></textarea></td>
+</tr>
+</table>
+
+<!--End of the subContainer div.-->
+</div>
+
+<!--End of the mainContainer div.-->
+</div>
+
+<script type="text/javascript">
+
+document.getElementById("btn_reset").onclick = function() {resetDefaults()};
+document.getElementById("btn_sample").onclick = function() {sampleLoop()};
+document.getElementById("btn_generate").onclick = function() {generateLoop()};
+document.getElementById("btn_generateAndCopy").onclick = function() {generateLoopAndCopy()};
+
+function resetDefaults()
+{
+	if(confirm("Reset the fields to their initial settings?"))
+	{
+		document.getElementById("txt_loopName").value = "myLoop";
+		document.getElementById("txt_blockName").value = "myBlock";
+		document.getElementById("txta_input").value = "";
+		document.getElementById("txta_output").value = "";
+		document.getElementById("txt_condition").value = "";
+	}
+}
+
+function sampleLoop()
+{
+	if(confirm("Replace the contents of the Input field with the sample loop?"))
+	{
+		document.getElementById("txta_input").value = "lvar1\tlvar2\tlvar3\nvalue1\tvalue2\tvalue3\nvalue4\tvalue5\tvalue6\nvalue7\tvalue8\tvalue9\n";
+		document.getElementById("txt_condition").value = "1 + 1 == %l%";
+	}
+}
+
+function generateLoop()
+{
+	var outputString = "";
+	
+	var rawInput = document.getElementById("txta_input").value.trim();
+	var splitInput = rawInput.split("\n");
+	
+	var loopvars_main = splitInput[0].split("\t");
+	
+	outputString += "<loop label=\"";
+	outputString += document.getElementById("txt_loopName").value;
+	outputString += "\" vars=\"";
+	for(i = 0; i < loopvars_main.length; i++)
+	{
+		outputString += loopvars_main[i];
+		if(i + 1 != loopvars_main.length)
+			outputString += ","
+	}
+	outputString += "\">\n\n";
+	
+	outputString += "<block label=\"";
+	outputString += document.getElementById("txt_blockName").value;
+	outputString += "\">\n\n";
+	
+	outputString += "[REPLACE THIS WITH YOUR LOOP'S QUESTIONS]\n\n";
+	
+	outputString += "</block>\n\n";
+	
+	for(i = 1; i < splitInput.length; i++)
+	{
+		var loopvars_sub = splitInput[i].split("\t");
+		outputString += "<looprow label=\"";
+		outputString += i;
+		outputString += "\"";
+		
+		if(document.getElementById("txt_condition").value != "")
+		{
+			condition = document.getElementById("txt_condition").value;
+			condition = condition.replace(/%l%/g, i);
+			
+			outputString += " cond=\"";
+			outputString += condition;
+			outputString += "\"";
+		}
+		
+		outputString += ">\n";
+		
+		for(j = 0; j < loopvars_main.length; j++)
+		{
+			outputString += "<loopvar name=\"";
+			outputString += loopvars_main[j];
+			outputString += "\">";
+			outputString += loopvars_sub[j];
+			outputString += "</loopvar>\n";
+		}
+		
+		outputString += "</looprow>\n\n";
+	}
+	
+	outputString += "</loop>";
+	
+	document.getElementById("txta_output").value = outputString;
+}
+
+function generateLoopAndCopy()
+{
+	generateLoop();
+	document.getElementById("txta_output").select();
+	document.execCommand("copy");
+	document.getElementById("txta_output").value = "The following was copied to the clipboard:\n==========================================\n" + document.getElementById("txta_output").value
+}
+
+</script>
+
+</body>
+</html>
