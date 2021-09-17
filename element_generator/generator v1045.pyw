@@ -1583,7 +1583,7 @@ def questionGenerate(textarea):
     if var_questionGeneratorReplaceTitle.get() == 1:
     
         # Split the contents by tabs, if there are two elements in the result then only use the second one.
-        splitInput = var_questionGeneratorTitleReplacement.get().split("    ")
+        splitInput = var_questionGeneratorTitleReplacement.get().split("\t")
         
         if len(splitInput) == 2:
             outputString = outputString.replace("Question Title", splitInput[1].strip())
@@ -1686,7 +1686,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
                     if var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[0]:
                         replaceString += "\n"
                     elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[1]:
-                        replaceString += "    "
+                        replaceString += "\t"
                     elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[2]:
                         replaceString += ","
                         
@@ -1726,7 +1726,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
                     if var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[0]:
                         replaceString += "\n"
                     elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[1]:
-                        replaceString += "    "
+                        replaceString += "\t"
                     elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[2]:
                         replaceString += ","
                         
@@ -1742,7 +1742,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
         if var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[0]:
             splitInput = rawInput.split("\n")
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[1]:
-            splitInput = rawInput.split("    ")
+            splitInput = rawInput.split("\t")
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[2]:
             splitInput = rawInput.split(",")
                 
@@ -1753,7 +1753,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
             splitInput[i] = splitInput[i].replace("<", "&lt;")
             splitInput[i] = splitInput[i].replace(">", "&gt;")
             
-            secondSplitInput = splitInput[i].split("    ")
+            secondSplitInput = splitInput[i].split("\t")
             if len(secondSplitInput) == 2:
                 splitInput[i] = secondSplitInput[1].strip()
         
@@ -1872,7 +1872,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
         
         # If delimited by tabs.
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[1]:
-            splitInput = rawInput.split("    ")
+            splitInput = rawInput.split("\t")
         
         # If delimited by commas.
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[2]:
@@ -1902,7 +1902,7 @@ def elementGenerate(inputTextArea, outputTextArea, append=False):
         
         # If delimited by tabs.
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[1]:
-            splitInput = rawInput.split("    ")
+            splitInput = rawInput.split("\t")
         
         # If delimited by commas.
         elif var_elementGeneratorDelimeterValue.get() == lst_elementGeneratorDelimiterOptions[2]:
