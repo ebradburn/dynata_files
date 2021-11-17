@@ -289,7 +289,7 @@ try:
 		
 		# 3: Conjoint block
 		outputString += "<block label=\"CONJOINT%s_BLOCK\">\n" % conjointNames[conjointIndex]
-		outputString += "  <quota overquota=\"noqual\" sheet=\"ConjointVersion%s\"/>\n" % conjointNames[conjointIndex]
+		outputString += "  <quota label=\"quota_ConjointVersion%s\" overquota=\"noqual\" sheet=\"ConjointVersion%s\"/>\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
 		outputString += "\n"
 		outputString += "  <suspend/>\n"
 		outputString += "\n"
