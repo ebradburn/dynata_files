@@ -1,4 +1,6 @@
-# Last updated 25 June 2019, to enable unique link creation
+# Last updated 5 April 2022, to support python 3
+# Do not use this script as-is if you are using python 2.x!
+# If you are using python 2.x, change the definition of myRange below to use a call to xrange(), not range()
 
 import random
 
@@ -32,11 +34,13 @@ if numTestIDsNeeded > 0:
 		output2.write(prefix + str(100000001 + i) + "\n")
 		output1.write(str(100000001 + i) + "\n")
 
-myRange = xrange(100000001 + numTestIDsNeeded, 999999999)
+myRange = range(100000001 + numTestIDsNeeded, 999999999)
 
 mySample = random.sample(myRange, numActualIDsNeeded)
 
 for i in mySample:
 	output2.write(prefix + str(i) + "\n")
 	output1.write(str(i) + "\n")
-	
+
+output1.close()
+output2.close()	
