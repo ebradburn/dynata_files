@@ -2,67 +2,29 @@ try:
 	import sys
 	import traceback
 	
-	# ED'S CONJOINT MAKER
+	# ED'S CONJOINT MAKER - UPDATED 2022 OCT 17
 	
 	print("Welcome to the conjoint maker!")
 	print("PLEASE STUDY YOUR DESIGN FILES AND REFERENCE MATERIALS CAREFULLY BEFORE USING THIS SCRIPT!")
+	print("")
+	print("/!\\ /!\\ /!\\ WARNING!!!  If you use this script, you are expected at the very least to attempt to understand how the outputted code works!")
+	print("Do not expect me to help you fix problems with the outputted code if you have not attempted to fix them yourself first!")
+	
+	numberOfConjoints = 1
 	
 	print("")
-	numberOfConjoints_raw = ""
-	numberOfConjoints = 0
-	while( not(numberOfConjoints_raw.lstrip("-").isdigit()) ):
-		print("How many conjoints does your project have?")
-		numberOfConjoints_raw = input("")
-	numberOfConjoints = int(numberOfConjoints_raw)
-	
-	if numberOfConjoints == 0:
-		print("Then why are you here?  (Press enter to exit.)")
-		input("")
-		sys.exit()
-	elif numberOfConjoints < 0:
-		print("Yeah, okay.  (Press enter to exit.)")
-		input("")
-		sys.exit()
-#	elif numberOfConjoints != 1:
-#		print("Sorry, at this point the program only supports one conjoint per project.  (Press enter to exit.)")
-#		input("")
-#		sys.exit()
-	
-	if numberOfConjoints >= 5:
-		print("")
-		print("If that is really true, then we feel really bad for you.  Go grab a drink, we're gonna be here a while.")	
-		print("")
-		
-	if numberOfConjoints > 1:
-		conjointNames = []
-		print("The program needs unique names for each conjoint in order to identify each of them.  Please provide them below.")
-		print("We strongly recommend you use only capital letters/underscores and that you keep each name as short as possible.")
-		print("")
-		i = 0
-		while i < numberOfConjoints:
-			print("Please enter the unique name for conjoint %d:" % (i+1))
-			thisConjointName = input("")
-			if thisConjointName == "" or thisConjointName[0].isdigit():
-				print("Invalid name.")
-				i -= 1
-			elif thisConjointName in conjointNames:
-				print("This name is already used.")
-				i -= 1
-			else:
-				conjointNames.append(thisConjointName)
-			i += 1
-	elif numberOfConjoints == 1:
-		conjointNames = [""]
+	print("This program creates a conjoint, one at a time.")
+	print("It is recommended that you give your conjoint a unique identifier, even if your project only has one conjoint.")
+	print("The unique identifier should ideally be as short as possible.  It can start with a number.  Use only letters and numbers.")
+	unique_identifier = input("Enter the unique identifier for this conjoint (leave blank for none - not recommended): ")
+	conjointNames = [unique_identifier]
 	
 	for conjointIndex in range(numberOfConjoints):
-		print("==============================================================")	
-		print("NOW STARTING CONJOINT %s" % (conjointNames[conjointIndex]))	
-		print("==============================================================")	
 		print("")	
 		input("Move your design file, named \"design%s.dat\", into the same folder as this script and press enter." % conjointNames[conjointIndex])
 		
 		designFile = open("design%s.dat" % (conjointNames[conjointIndex]), "r")
-		outputFile = open("conjoint.xml", "w" if conjointIndex == 0 else "a")
+		outputFile = open("conjoint%s.xml"  % (conjointNames[conjointIndex]), "w")
 		
 		isFirstLine = True
 		
@@ -124,15 +86,16 @@ try:
 		print("")
 		
 		print("If you have a tab-delimited text file that contains the attribute names and texts, please move it to this folder.")
-		print("Then enter its filename and hit enter.  Check the program documentation for info on how this file should be formatted.")
+		print("This is usually obtained from the vars_levels sheet of your design excel file, with headers both horizontally and vertically.")
+		print("See rawInputs.dat for an example of how this file should be formatted.")
 		print("If you don't have one, leave this blank and you can enter the text manually.")
-		nameFilename = input("")
+		nameFilename = input("Enter the filename of your attributes file: ")
 		enterManually = False
 		
 		attributeNames = ["" for i in range(numAttributes)]
 		
 		if nameFilename == "":
-			print("\nEnter the texts manually.\n")
+			print("\nEnter the texts manually.  Press Ctrl+C to close program.\n")
 			enterManually = True
 		else:
 			try:
@@ -176,19 +139,19 @@ try:
 				print("Does this look right? (y/n)")
 				response = input("")
 				if len(response) == 0 or response[0].lower() != "y":
-					print("All righty then, enter the texts manually.")
+					print("All righty then, enter the texts manually. Press Ctrl+C to close program.")
 					print("")
 					enterManually = True
 			
 			except Exception:
 				enterManually = True
 				print(traceback.format_exc())
-				print("\nAn error occurred while reading the file or the file was not found.  Enter the texts manually.\n")
+				print("\nAn error occurred while reading the file or the file was not found.  Enter the texts manually.   Press Ctrl+C to close program.\n")
 		
 		if enterManually:
 			for i in range(numAttributes):
 				print("Enter the name of attribute %d:" % (i+1))
-				attributeNames[i] = input("")
+				attributeNames[i] = input("")				
 				attributeNames[i] = attributeNames[i].replace("&", "&amp;")
 				attributeNames[i] = attributeNames[i].replace("<", "&lt;")
 				attributeNames[i] = attributeNames[i].replace(">", "&gt;")
@@ -202,7 +165,7 @@ try:
 				
 				for j in range(minValuesPerAttribute[i], maxValuesPerAttribute[i] + 1):
 					print("Enter the text for option %d for attribute %d \"%s\" (leave blank if there is none):" % (j, i+1, attributeNames[i]))
-					attributeTexts[i][j] = input("")
+					attributeTexts[i][j] = input("")					
 					attributeTexts[i][j] = attributeTexts[i][j].replace("&", "&amp;")
 					attributeTexts[i][j] = attributeTexts[i][j].replace("<", "&lt;")
 					attributeTexts[i][j] = attributeTexts[i][j].replace(">", "&gt;")
@@ -235,61 +198,86 @@ try:
 		# 2: exec when init block
 		outputString += "\n"
 		outputString += "<exec when=\"init\">\n"
-		outputString += "# =======================================\n"
-		outputString += "# INITIALIZE CONJOINT %s\n" % conjointNames[conjointIndex]
-		outputString += "# =======================================\n"
-		outputString += ("numVersions%s = %d\n" % (conjointNames[conjointIndex], numVersions))
-		outputString += ("numTasksPerVersion%s = %d\n" % (conjointNames[conjointIndex], numTasks))
-		outputString += ("numConceptsPerTask%s = %d\n" % (conjointNames[conjointIndex], numConcepts))
-		outputString += ("numAttributesPerConcept%s = %d\n" % (conjointNames[conjointIndex], numAttributes))
-		outputString += "totalSlots%s = numVersions%s * numTasksPerVersion%s * numConceptsPerTask%s * numAttributesPerConcept%s\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "# ===============================================================================================\n"
+		outputString += "# CONJOINT COMMON SECTION - All conjoints\n"
+		outputString += "# If your project has multiple conjoints, then you only need to transfer this exec block to your survey one time.\n"
+		outputString += "# This section contains helper functions that may be useful when editing your conjoint.\n"
+		outputString += "# If you need to define a custom function that multiple conjoints use, then do so here.\n"
+		outputString += "# ===============================================================================================\n"
 		outputString += "\n"
-		outputString += "designData%s = [0] * totalSlots%s\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "# This function takes a list of strings, gets rid of blank strings, and combines them with a line break in between.\n"
+		outputString += "# Useful for situations where you have multiple attributes that are all supposed to be displayed within the same cell.\n"
+		outputString += "def combine_attributes(text_attribute_list):\n"
+		outputString += "\treturn '&lt;br /&gt;'.join([item for item in text_attribute_list if item != ''])\n"
 		outputString += "\n"
-		outputString += "inputFile%s = open(\"design%s.dat\", \"r\")\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "# This function looks up the conjoint data dictionary in the first argument, and looks up based on the\n"
+		outputString += "# version/task/concept/attribute values given.  This then returns the attribute value.\n"
+		outputString += "def quick_att(dict, ver, task, con, att):\n"
+		outputString += "\treturn dict[ver][task][con][att]\n"
+		outputString += "</exec>\n"
 		outputString += "\n"
-		outputString += "isFirstLine = True\n"
-		outputString += "for eachLine in inputFile%s:\n" % conjointNames[conjointIndex]
+		outputString += "<exec when=\"init\">\n"
+		outputString += "# ==================================================\n"
+		outputString += "# INITIALIZE CONJOINT %s\t\n" % (conjointNames[conjointIndex])
+		outputString += "# ==================================================\n"
+		outputString += "num_versions_%s = %d\n" % (conjointNames[conjointIndex], numVersions)
+		outputString += "num_tasks_per_version_%s = %d\n" % (conjointNames[conjointIndex], numTasks)
+		outputString += "num_concepts_per_task_%s = %d\n" % (conjointNames[conjointIndex], numConcepts)
+		outputString += "num_attributes_per_concept_%s = %d\n" % (conjointNames[conjointIndex], numAttributes)
 		outputString += "\n"
-		outputString += "\tif isFirstLine:\n"
-		outputString += "\t\tisFirstLine = False\n"
+		outputString += "# Structure of dict is:\n"
+		outputString += "# conjoint_data_%s[version number][task number][concept number][attribute number] = attribute value\n" % (conjointNames[conjointIndex])
+		outputString += "conjoint_data_%s = {}\n" % (conjointNames[conjointIndex])
+		outputString += "\n"
+		outputString += "# Initialize subdictionaries\n"
+		outputString += "for version_num in range(1, num_versions_%s + 1):\n" % (conjointNames[conjointIndex])
+		outputString += "\tconjoint_data_%s[version_num] = {}\n" % (conjointNames[conjointIndex])
+		outputString += "\tfor task_num in range(1, num_tasks_per_version_%s + 1):\n" % (conjointNames[conjointIndex])
+		outputString += "\t\tconjoint_data_%s[version_num][task_num] = {}\n" % (conjointNames[conjointIndex])
+		outputString += "\t\tfor concept_num in range(1, num_concepts_per_task_%s + 1):\n" % (conjointNames[conjointIndex])
+		outputString += "\t\t\tconjoint_data_%s[version_num][task_num][concept_num] = {}\n" % (conjointNames[conjointIndex])
+		outputString += "\t\t\tfor attribute_num in range(1, num_attributes_per_concept_%s + 1):\n" % (conjointNames[conjointIndex])
+		outputString += "\t\t\t\tconjoint_data_%s[version_num][task_num][concept_num][attribute_num] = {}\n" % (conjointNames[conjointIndex])
+		outputString += "\t\t\t\t\n"
+		outputString += "# Open design file and read into conjoint_data_%s\n" % (conjointNames[conjointIndex])
+		outputString += "input_file_%s = open('design%s.dat', "r")\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "\n"
+		outputString += "for i, line in input_file_%s:\n" % (conjointNames[conjointIndex])
+		outputString += "\t\n"
+		outputString += "\t# Skip headers\n"
+		outputString += "\tif i == 0:\n"
 		outputString += "\t\tcontinue\n"
+		outputString += "\t\t\n"
+		outputString += "\t# Split line by tabs and collect version/task/concept/attribute data\n"
+		outputString += "\tsplit_line = line.split('\\t')\n"
+		outputString += "\tcurrent_version = int(split_line[0].strip())\n"
+		outputString += "\tcurrent_task = int(split_line[1].strip())\n"
+		outputString += "\tcurrent_concept = int(split_line[2].strip())\n"
+		outputString += "\tcurrent_attributes = [int(item.strip()) for item in split_line[3:]]\n"
 		outputString += "\t\n"
-		outputString += "\t# Split each line by tabs\n"
-		outputString += "\t# 0: version, 1: task, 2: concept, 3: att1, 4: att2, 5: att3...\n"
-		outputString += "\tsplitLine = eachLine.split(\"\\t\")\n"
+		outputString += "\t# Load into dictionary\n"
+		outputString += "\tfor j, item in enumerate(current_attributes):\n"
+		outputString += "\t\tconjoint_data_%s[current_version][current_task][current_concept][j + 1] = item\n" % (conjointNames[conjointIndex])
 		outputString += "\t\n"
-		outputString += "\tcurrentVersion = int(splitLine[0]) - 1\n"
-		outputString += "\tcurrentTask = int(splitLine[1]) - 1\n"
-		outputString += "\tcurrentConcept = int(splitLine[2]) - 1\n"
-		outputString += "\t\n"
-		outputString += "\tbaseArrayIndex = (currentVersion * numTasksPerVersion%s * numConceptsPerTask%s * numAttributesPerConcept%s) + (currentTask * numConceptsPerTask%s * numAttributesPerConcept%s) + (currentConcept * numAttributesPerConcept%s)\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex])
-		outputString += "\t\n"
-		outputString += "\tfor i in range(numAttributesPerConcept%s):\n" % conjointNames[conjointIndex]
-		outputString += "\t\tdesignData%s[baseArrayIndex + i] = int(splitLine[3 + i])\n" % conjointNames[conjointIndex]
+		outputString += "input_file_%s.close()\n" % (conjointNames[conjointIndex])
 		outputString += "\n"
-		outputString += "inputFile%s.close()\n" % conjointNames[conjointIndex]
+		outputString += "# =======================================================================================================\t\n"
+		outputString += "# CONJOINT %s-SPECIFIC FUNCTIONS\n" % (conjointNames[conjointIndex])
+		outputString += "# Functions that only conjoint %s uses.  If you need to define a function that only this conjoint uses,\n" % (conjointNames[conjointIndex])
+		outputString += "# do so here.\n"
+		outputString += "# =======================================================================================================\n"
 		outputString += "\n"
-		outputString += "def getAttribute%s(version, task, concept, attribute):\n" % conjointNames[conjointIndex]
-		outputString += "\treturn designData%s[((version - 1) * numTasksPerVersion%s * numConceptsPerTask%s * numAttributesPerConcept%s) + ((task - 1) * numConceptsPerTask%s * numAttributesPerConcept%s) + ((concept - 1) * numAttributesPerConcept%s) + (attribute - 1)]\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex],conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "# This function returns the res tag of the given type and attribute value, allowing for display of text.\n"
+		outputString += "def get_text_%s(type, attribute):\n" % (conjointNames[conjointIndex])
+		outputString += "\tall_data = %s\n" % (resTagString)
 		outputString += "\t\n"
-		outputString += "def getAttributeList%s(version, task, concept):\n" % conjointNames[conjointIndex]
-		outputString += "\tbaseArrayIndex = ((version - 1) * numTasksPerVersion%s * numConceptsPerTask%s * numAttributesPerConcept%s) + ((task - 1) * numConceptsPerTask%s * numAttributesPerConcept%s) + ((concept - 1) * numAttributesPerConcept%s)\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex])
-		outputString += "\treturnArray = []\n"
-		outputString += "\tfor i in range(baseArrayIndex, baseArrayIndex + numAttributesPerConcept%s):\n" % conjointNames[conjointIndex]
-		outputString += "\t\treturnArray.append(designData%s[i])\n" % conjointNames[conjointIndex]
-		outputString += "\treturn returnArray\n"
-		outputString += "\t\n"
-		outputString += "def getTextAttribute%s(type, attribute):\n" % conjointNames[conjointIndex]
-		outputString += ("\tallData%s = %s\n" % (conjointNames[conjointIndex], resTagString))
-		outputString += "\t\n"
-		outputString += "\treturn allData%s[type][attribute]\n" % conjointNames[conjointIndex]
+		outputString += "\treturn all_data[type][attribute]\n"
 		outputString += "</exec>\n"
 		outputString += "\n"
 		
 		# 3: Conjoint block
-		outputString += "<block label=\"CONJOINT%s_BLOCK\">\n" % conjointNames[conjointIndex]
-		outputString += "  <quota label=\"quota_ConjointVersion%s\" overquota=\"noqual\" sheet=\"ConjointVersion%s\"/>\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "<block label=\"CONJOINT_%s_BLOCK\">\n" % conjointNames[conjointIndex]
+		outputString += "  <quota label=\"quota_cj%s\" overquota=\"noqual\" sheet=\"ConjointVersion%s\"/>\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
 		outputString += "\n"
 		outputString += "  <suspend/>\n"
 		outputString += "\n"
@@ -324,16 +312,16 @@ try:
 		for i in range(numAttributes):
 			outputString += "<style label=\"replaceElements%s%d\" cond=\"col.label in [%s]\" name=\"question.element\" rows=\"a%d\"><![CDATA[\n" % (conjointNames[conjointIndex], i+1, conceptColumnString, i+1)
 			outputString += "<td style=\"vertical-align:middle;background-color:white\" headers=\"${ec.this.label + \"_\" + ec.col.label if ec.col.label else \"\"}\" class=\"cell nonempty legend col-legend col-legend-left col-legend-basic legend-level-1\"  $(extra)>\n"
-			outputString += "${getTextAttribute%s(%d, getAttribute%s(HP_versionNumber%s.val, [loopvar: task], col.index + 1, %d))}</td>\n" % (conjointNames[conjointIndex], i, conjointNames[conjointIndex], conjointNames[conjointIndex], i+1)
+			outputString += "${get_text_%s(%d, quick_att(conjoint_data_%s, HP_versionNumber%s.val, [loopvar: task], col.index + 1, %d))}</td>\n" % (conjointNames[conjointIndex], i, conjointNames[conjointIndex], conjointNames[conjointIndex], i+1)
 			outputString += "]]></style>\n"
 		
 		# Cols
 		for i in range(numConcepts):
-			outputString += "        <col label=\"c%d\"><b>Option %d</b></col>\n" % (i+1, i+1)
+			outputString += "        <col label=\"c%d\" value=\"%d\"><b>Option %d</b></col>\n" % (i+1, i+1, i+1)
 			
 		# Rows
 		for i in range(numAttributes):
-			outputString += "        <row label=\"a%d\" optional=\"1\"><b>%s</b></row>\n" % (i+1, attributeNames[i])
+			outputString += "        <row label=\"a%d\" where=\"notdp\" optional=\"1\"><b>%s</b></row>\n" % (i+1, attributeNames[i])
 		
 		outputString += "        <row label=\"r1\"/>\n"
 		outputString += "      </radio>\n"
@@ -372,17 +360,17 @@ try:
 	# =======================================================================================================
 		
 	print("")
-	print("Completed all conjoints.  Here follows a summary of the outputted files:")
+	print("Completed conjoint.  Here follows a summary of the outputted files:")
 	print("")
-	print("1. conjoint.xml: XML code for the conjoint%s.  Paste the contents of this file into your project's XML." % ("s" if numberOfConjoints > 1 else ""))
-	print("2. quotaDefines.txt: Content to paste into the defines tab of your project's quota.xls.")
+	print("- quotaDefines%s.txt: Content to paste into the defines tab of your project's quota.xls." % conjointNames[0])
 	
 	for q in range(len(conjointNames)):
-		print("%d. quotaConjoint%s.txt: Create a new tab in your project's quota.xls called \"ConjointVersion%s\" and" % (3+q, conjointNames[q ], conjointNames[q ]))
-		print("   paste the contents of this file into it.")
+		print("- quotaConjoint%s.txt: Create a new tab in your project's quota.xls called \"ConjointVersion%s\" and" % (conjointNames[q ], conjointNames[q ]))
+		print("  paste the contents of this file into it.")
 
+	print("- conjoint%s.xml: XML code for the conjoint%s.  Paste the contents of this file into your project's XML." % (conjointNames[0], "s" if numberOfConjoints > 1 else ""))
 	print("")
-	print("Don't forget to upload your design file%s and updated quota sheet into your project before pasting the conjoint XML!" % ("s" if numberOfConjoints > 1 else ""))
+	print("Be sure to upload your %s and updated quota sheet into your project before pasting the conjoint XML!" % ("design" + conjointNames[0] + ".dat"))
 	print("")
 	
 		
