@@ -2,7 +2,7 @@ try:
 	import sys
 	import traceback
 	
-	# ED'S CONJOINT MAKER - UPDATED 2022 OCT 17
+	# ED'S CONJOINT MAKER - UPDATED 2023 FEB 27
 	
 	print("Welcome to the conjoint maker!")
 	print("PLEASE STUDY YOUR DESIGN FILES AND REFERENCE MATERIALS CAREFULLY BEFORE USING THIS SCRIPT!")
@@ -169,7 +169,14 @@ try:
 					attributeTexts[i][j] = attributeTexts[i][j].replace("&", "&amp;")
 					attributeTexts[i][j] = attributeTexts[i][j].replace("<", "&lt;")
 					attributeTexts[i][j] = attributeTexts[i][j].replace(">", "&gt;")
-		
+
+		print("")
+		print("Does this conjoint have a \"none of these\" option? (y/n)")
+		none_of_these_answer = input("")
+		if none_of_these_answer == 'y' or none_of_these_answer == "Y":
+		    none_of_these = True
+		else:
+		    none_of_these = False
 		
 		print("")
 		print("Now generating conjoint code...")
@@ -194,13 +201,16 @@ try:
 				resTagString += ", "
 			else:
 				resTagString += "]"
+                
+		if none_of_these:
+			outputString += "<res label=\"cj%s_none_of_these\">None of these options</res>\n" % (conjointNames[conjointIndex])
 		
 		# 2: exec when init block
 		outputString += "\n"
 		outputString += "<exec when=\"init\">\n"
 		outputString += "# ===============================================================================================\n"
 		outputString += "# CONJOINT COMMON SECTION - All conjoints\n"
-		outputString += "# If your project has multiple conjoints, then you only need to transfer this exec block to your survey one time.\n"
+		outputString += "# Regardless of the number of conjoints your project has, you only need to transfer this exec block to your survey one time.\n"
 		outputString += "# This section contains helper functions that may be useful when editing your conjoint.\n"
 		outputString += "# If you need to define a custom function that multiple conjoints use, then do so here.\n"
 		outputString += "# ===============================================================================================\n"
@@ -213,7 +223,7 @@ try:
 		outputString += "# This function looks up the conjoint data dictionary in the first argument, and looks up based on the\n"
 		outputString += "# version/task/concept/attribute values given.  This then returns the attribute value.\n"
 		outputString += "def quick_att(dict, ver, task, con, att):\n"
-		outputString += "\treturn dict[ver][task][con][att]\n"
+		outputString += "\treturn dict[(ver, task, con, att)]\n"
 		outputString += "</exec>\n"
 		outputString += "\n"
 		outputString += "<exec when=\"init\">\n"
@@ -226,23 +236,13 @@ try:
 		outputString += "num_attributes_per_concept_%s = %d\n" % (conjointNames[conjointIndex], numAttributes)
 		outputString += "\n"
 		outputString += "# Structure of dict is:\n"
-		outputString += "# conjoint_data_%s[version number][task number][concept number][attribute number] = attribute value\n" % (conjointNames[conjointIndex])
+		outputString += "# conjoint_data_%s[(version number, task number, concept number, attribute number)] = attribute value\n" % (conjointNames[conjointIndex])
 		outputString += "conjoint_data_%s = {}\n" % (conjointNames[conjointIndex])
 		outputString += "\n"
-		outputString += "# Initialize subdictionaries\n"
-		outputString += "for version_num in range(1, num_versions_%s + 1):\n" % (conjointNames[conjointIndex])
-		outputString += "\tconjoint_data_%s[version_num] = {}\n" % (conjointNames[conjointIndex])
-		outputString += "\tfor task_num in range(1, num_tasks_per_version_%s + 1):\n" % (conjointNames[conjointIndex])
-		outputString += "\t\tconjoint_data_%s[version_num][task_num] = {}\n" % (conjointNames[conjointIndex])
-		outputString += "\t\tfor concept_num in range(1, num_concepts_per_task_%s + 1):\n" % (conjointNames[conjointIndex])
-		outputString += "\t\t\tconjoint_data_%s[version_num][task_num][concept_num] = {}\n" % (conjointNames[conjointIndex])
-		outputString += "\t\t\tfor attribute_num in range(1, num_attributes_per_concept_%s + 1):\n" % (conjointNames[conjointIndex])
-		outputString += "\t\t\t\tconjoint_data_%s[version_num][task_num][concept_num][attribute_num] = {}\n" % (conjointNames[conjointIndex])
-		outputString += "\t\t\t\t\n"
 		outputString += "# Open design file and read into conjoint_data_%s\n" % (conjointNames[conjointIndex])
-		outputString += "input_file_%s = open('design%s.dat', "r")\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "input_file_%s = open('design%s.dat', \"r\")\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex])
 		outputString += "\n"
-		outputString += "for i, line in input_file_%s:\n" % (conjointNames[conjointIndex])
+		outputString += "for i, line in enumerate(input_file_%s):\n" % (conjointNames[conjointIndex])
 		outputString += "\t\n"
 		outputString += "\t# Skip headers\n"
 		outputString += "\tif i == 0:\n"
@@ -257,7 +257,7 @@ try:
 		outputString += "\t\n"
 		outputString += "\t# Load into dictionary\n"
 		outputString += "\tfor j, item in enumerate(current_attributes):\n"
-		outputString += "\t\tconjoint_data_%s[current_version][current_task][current_concept][j + 1] = item\n" % (conjointNames[conjointIndex])
+		outputString += "\t\tconjoint_data_%s[(current_version, current_task, current_concept, j + 1)] = item\n" % (conjointNames[conjointIndex])
 		outputString += "\t\n"
 		outputString += "input_file_%s.close()\n" % (conjointNames[conjointIndex])
 		outputString += "\n"
@@ -269,9 +269,11 @@ try:
 		outputString += "\n"
 		outputString += "# This function returns the res tag of the given type and attribute value, allowing for display of text.\n"
 		outputString += "def get_text_%s(type, attribute):\n" % (conjointNames[conjointIndex])
-		outputString += "\tall_data = %s\n" % (resTagString)
-		outputString += "\t\n"
-		outputString += "\treturn all_data[type][attribute]\n"
+		outputString += "\tif hasattr(res, \"cj%s_att\" + str(type) + \"_\" + str(attribute)):\n" % (conjointNames[conjointIndex])
+		outputString += "\t\treturn getattr(res, \"cj%s_att\" + str(type) + \"_\" + str(attribute))\n" % (conjointNames[conjointIndex])
+		outputString += "\telse:\n"
+		outputString += "\t\treturn None\n"
+		outputString += "\n"
 		outputString += "</exec>\n"
 		outputString += "\n"
 		
@@ -287,7 +289,7 @@ try:
 		outputString += "    where=\"execute,survey,report\">\n"
 		outputString += "      <title>Hidden Question. %s Version Number</title>\n" % conjointNames[conjointIndex]
 		outputString += "    <exec>\n"
-		outputString += "for i in range(1, numVersions%s + 1):\n" % conjointNames[conjointIndex]
+		outputString += "for i in range(1, num_versions_%s + 1):\n" % conjointNames[conjointIndex]
 		outputString += ("\tif hasMarker(\"/ConjointVersion" + conjointNames[conjointIndex] + "/cj" + conjointNames[conjointIndex] + "ver_\" + str(i)):\n")
 		outputString += "\t\tHP_versionNumber%s.val = i\n" % conjointNames[conjointIndex]
 		outputString += "\t\tbreak\n"
@@ -300,8 +302,46 @@ try:
 		
 		outputString += "  <loop label=\"cjLoop%s\" vars=\"task\">\n" % conjointNames[conjointIndex]
 		outputString += "    <block label=\"cjBlock%s\">\n" % conjointNames[conjointIndex]
+		outputString += "\n"
+		
+		# Time capture, part 1
+		outputString += "\t<exec>\n"
+		outputString += "p.startTime = timeSpent()\n"
+		outputString += "\t</exec>\n"
+		outputString += "\n"
+
+		outputString += "\t<suspend/>\n"
+		outputString += "\n"
+		
+		# Attributes capture
+		outputString += "\t    <number\n" 
+		outputString += "\t  label=\"CJATTRIBUTES%s_[loopvar: task]\"\n" % conjointNames[conjointIndex]
+		outputString += "\t  optional=\"1\"\n"
+		outputString += "\t  size=\"3\"\n"
+		outputString += "\t  translateable=\"0\"\n"
+		outputString += "\t  where=\"execute,survey,report\">\n"
+		outputString += "\t      <title>Hidden Question.  Attribute values shown for task [loopvar: task].</title>\n"
+		outputString += "\t      <exec>\n"
+		outputString += "for i, row in enumerate([row.label for row in CJATTRIBUTES%s_[loopvar: task].rows]):\n" % conjointNames[conjointIndex]
+		outputString += "\tfor j, col in enumerate([col.label for col in CJATTRIBUTES%s_[loopvar: task].cols]):\n" % conjointNames[conjointIndex]
+		outputString += "\t\tCJATTRIBUTES%s_[loopvar: task].attr(row).attr(col).val = quick_att(conjoint_data_%s, HP_versionNumber%s.val, [loopvar: task], j+1, i+1)\n" % (conjointNames[conjointIndex], conjointNames[conjointIndex], conjointNames[conjointIndex])
+		outputString += "\t      </exec>\n"
+		outputString += "\n"
+
+		for i in range(numConcepts):
+			outputString += "\t      <col label=\"c%d\"><b>Concept %d</b></col>\n" % (i+1, i+1)
+        
+		for i in range(numAttributes):
+			outputString += "\t      <row label=\"r%d\">Att %d - %s</row>\n" % (i+1, i+1, attributeNames[i])
+		
+		outputString += "\t</number>\n"
+		outputString += "\n"
+		outputString += "\t<suspend/>\n"
+		
+		# Conjoint exercise question
 		outputString += "      <radio \n"
 		outputString += "     label=\"CJEXERCISE%s_[loopvar: task]\"\n" % conjointNames[conjointIndex]
+		outputString += "     ss:colWidth=\"200px\"\n"
 		outputString += "     surveyDisplay=\"desktop\">\n"
 		outputString += "        <title>ENTER YOUR CONJOINT QUESTION TEXT HERE</title>\n"
 		
@@ -310,15 +350,45 @@ try:
 		
 		# Style blocks
 		for i in range(numAttributes):
-			outputString += "<style label=\"replaceElements%s%d\" cond=\"col.label in [%s]\" name=\"question.element\" rows=\"a%d\"><![CDATA[\n" % (conjointNames[conjointIndex], i+1, conceptColumnString, i+1)
-			outputString += "<td style=\"vertical-align:middle;background-color:white\" headers=\"${ec.this.label + \"_\" + ec.col.label if ec.col.label else \"\"}\" class=\"cell nonempty legend col-legend col-legend-left col-legend-basic legend-level-1\"  $(extra)>\n"
-			outputString += "${get_text_%s(%d, quick_att(conjoint_data_%s, HP_versionNumber%s.val, [loopvar: task], col.index + 1, %d))}</td>\n" % (conjointNames[conjointIndex], i, conjointNames[conjointIndex], conjointNames[conjointIndex], i+1)
+			outputString += "<style label=\"replaceElements%s_%d\" cond=\"col.label in [%s]\" name=\"question.element\" rows=\"a%d\"><![CDATA[\n" % (conjointNames[conjointIndex], i+1, conceptColumnString, i+1)
+			outputString += "<td style=\"vertical-align:middle;background-color:${'#DCE6F1' if col.index % 2 == 0 else 'white'}\" headers=\"${ec.this.label + \"_\" + ec.col.label if ec.col.label else \"\"}\" class=\"cell nonempty legend col-legend col-legend-left col-legend-basic legend-level-1\"  $(extra)>\n"
+			outputString += "${get_text_%s(%d, quick_att(conjoint_data_%s, HP_versionNumber%s.val, [loopvar: task], col.index + 1, %d))}</td>\n" % (conjointNames[conjointIndex], i+1, conjointNames[conjointIndex], conjointNames[conjointIndex], i+1)
 			outputString += "]]></style>\n"
+            
+        # Style blocks for "None" column
+		if none_of_these:
+        
+			attribute_rows = ['a' + str(i+1) for i in range(numAttributes)]
+			middle_attribute_row = attribute_rows[int(numAttributes / 2)]
+			first_style_rows = [item for item in attribute_rows if item != middle_attribute_row]
+			
+			outputString += "<style label=\"replaceElements%s_NONE1\" cond=\"col.label in ['c%d']\" name=\"question.element\" rows=\"%s\"><![CDATA[\n" % (conjointNames[conjointIndex], numConcepts+1, ','.join(first_style_rows))
+			outputString += "<td style=\"vertical-align:middle;background-color:${'#DCE6F1' if col.index % 2 == 0 else 'white'}; border-top: none; border-bottom: none;\" headers=\"${ec.this.label + \"_\" + ec.col.label if ec.col.label else \"\"}\" class=\"cell nonempty legend col-legend col-legend-left col-legend-basic legend-level-1\"  $(extra)>\n"
+			outputString += "</td>\n"
+			outputString += "]]></style>\n"
+			outputString += "<style label=\"replaceElements%s_NONE2\" cond=\"col.label in ['c%d']\" name=\"question.element\" rows=\"%s\"><![CDATA[\n" % (conjointNames[conjointIndex], numConcepts+1, middle_attribute_row)
+			outputString += "<td style=\"vertical-align:middle;background-color:${'#DCE6F1' if col.index % 2 == 0 else 'white'}; border-top: none; border-bottom: none;\" headers=\"${ec.this.label + \"_\" + ec.col.label if ec.col.label else \"\"}\" class=\"cell nonempty legend col-legend col-legend-left col-legend-basic legend-level-1\"  $(extra)>\n"
+			outputString += "${res.cj%s_none_of_these}</td>\n" % (conjointNames[conjointIndex])
+			outputString += "]]></style>\n"
+            
+        # Style block for javascript
+		outputString += "<style name=\"question.after\" wrap=\"ready\">\n"
+		outputString += "<![CDATA[\n"    
+		outputString += "    $ (\".col-legend-top\").css(\"background-color\", \"#1F497D\");\n"
+		outputString += "    $ (\".col-legend-top\").css(\"color\", \"#FFFFFF\");\n"
+		outputString += "    $ (\".row-legend-left\").css(\"background-color\", \"#1F497D\");\n"
+		outputString += "    $ (\".row-legend-left\").css(\"color\", \"#FFFFFF\");\n"
+		outputString += "    $ (\".clickableCell\").css(\"background-color\", \"#1F497D\");\n"
+		outputString += "]]></style>\n"
 		
 		# Cols
 		for i in range(numConcepts):
 			outputString += "        <col label=\"c%d\" value=\"%d\"><b>Option %d</b></col>\n" % (i+1, i+1, i+1)
-			
+		
+        # "None of these" column
+		if none_of_these:
+			outputString += "        <col label=\"c%d\" value=\"%d\"><b>None</b></col>\n" % (numConcepts+1, numConcepts+1)
+        
 		# Rows
 		for i in range(numAttributes):
 			outputString += "        <row label=\"a%d\" where=\"notdp\" optional=\"1\"><b>%s</b></row>\n" % (i+1, attributeNames[i])
@@ -326,6 +396,22 @@ try:
 		outputString += "        <row label=\"r1\"/>\n"
 		outputString += "      </radio>\n"
 		outputString += "\n"	
+		outputString += "\t<suspend/>\n"
+		outputString += "\n"	
+		
+		# Time capture, part 2
+		outputString += "\t	   <float \n"
+		outputString += "\t  label=\"CJTIMER%s_[loopvar: task]\"\n" % conjointNames[conjointIndex]
+		outputString += "\t  size=\"15\"\n"
+		outputString += "\t  translateable=\"0\"\n"
+		outputString += "\t  where=\"execute,survey,report\">\n"
+		outputString += "\t      <title>Hidden Question.  Timer for each task in conjoint exercise %s (in seconds).</title>\n" % conjointNames[conjointIndex]
+		outputString += "\t      <exec>\n"
+		outputString += "CJTIMER%s_[loopvar: task].val = (timeSpent() - p.startTime)\n" % conjointNames[conjointIndex]
+		outputString += "\t      </exec>\n"
+		outputString += "\t    </float>\n"
+		outputString += "\n"	
+		
 		outputString += "    </block>\n"
 		
 		# Looprows
@@ -346,7 +432,7 @@ try:
 		outputFile.write(outputString)
 		outputFile.close()
 		
-		definesFile = open("quotaDefines.txt", "w" if conjointIndex == 0 else "a")
+		definesFile = open("quotaDefines%s.txt" % conjointNames[conjointIndex], "w" if conjointIndex == 0 else "a")
 		for i in range(numVersions):
 			definesFile.write("cj%sver_%d\tplus\tVersion %d\n" % (conjointNames[conjointIndex], i+1, i+1))
 		definesFile.close()
